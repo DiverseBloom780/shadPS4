@@ -1236,3 +1236,18 @@ void MainWindow::StartEmulator(std::filesystem::path path) {
     emulator_thread.detach();
 #endif
 }
+
+void MainWindow::InstallPkg() {
+    QString fileName = QFileDialog::getOpenFileName(
+        this,
+        tr("Select PKG File"),
+        "",
+        tr("PKG Files (*.pkg)")
+    );
+
+    if (!fileName.isEmpty()) {
+        // Install the package
+        Emu::InstallPkg(fileName.toStdString());
+        gameListModel::refresh();
+    }
+}
