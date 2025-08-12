@@ -130,7 +130,7 @@ void MainWindow::CreateActions() {
     m_theme_act_group->addAction(ui->setThemeOled);
 
     installPkgAct = new QAction(tr("&Install PKG"), this);
-    ui->menuFile->addAction(installPkgAct);
+    fileMenu->addAction(installPkgAct);
     connect(installPkgAct, &QAction::triggered, this, &MainWindow::InstallPkg);
 }
 
