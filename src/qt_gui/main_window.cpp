@@ -128,6 +128,10 @@ void MainWindow::CreateActions() {
     m_theme_act_group->addAction(ui->setThemeGruvbox);
     m_theme_act_group->addAction(ui->setThemeTokyoNight);
     m_theme_act_group->addAction(ui->setThemeOled);
+
+    installPkgAct = new QAction(tr("&Install PKG"), this);
+    ui->menuFile->addAction(installPkgAct);
+    connect(installPkgAct, &QAction::triggered, this, &MainWindow::InstallPkg);
 }
 
 void MainWindow::PauseGame() {
