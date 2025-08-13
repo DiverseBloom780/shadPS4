@@ -22,6 +22,8 @@
 #include "control_settings.h"
 #include "game_install_dialog.h"
 #include "hotkeys.h"
+#include "pkg_viewer.h"
+#include "core/file_format/pkg.h"
 #include "kbm_gui.h"
 #include "settings_dialog.h"
 #include "gui_context_menus.h" // for InstallDragDropPkg
