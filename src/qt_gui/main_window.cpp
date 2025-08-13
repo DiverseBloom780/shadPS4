@@ -22,20 +22,64 @@
 #include "game_install_dialog.h"
 #include "hotkeys.h"
 #include "kbm_gui.h"
-#include "main_window.h"
 #include "settings_dialog.h"
 
 #ifdef ENABLE_DISCORD_RPC
 #include "common/discord_rpc_handler.h"
 #endif
 
+class MainWindow : public QMainWindow {
+    Q_OBJECT
+
+public:
+    explicit MainWindow(QWidget* parent = nullptr);
+    ~MainWindow();
+
+    // ...
+
+protected:
+    void dragEnterEvent(QDragEnterEvent* event) override;
+    void dropEvent(QDropEvent* event) override;
+
+    // ...
+};
+
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
+    setAcceptDrops(true); // Allow drag & drop
     installEventFilter(this);
-    setAttribute(Qt::WA_DeleteOnClose);
     m_gui_settings = std::make_shared<gui_settings>();
     ui->toggleLabelsAct->setChecked(
         m_gui_settings->GetValue(gui::mw_showLabelsUnderIcons).toBool());
+}
+
+void MainWindow::dragEnterEvent(QDragEnterEvent* event) {
+    if (event->mimeData()->hasUrls()) {
+        QList<QUrl> urls = event->mimeData()->urls();
+        for (const QUrl& url : urls) {
+            QString filePath = url.toLocalFile();
+            if (filePath.endsWith(".pkg", Qt::CaseInsensitive)) {
+                event->acceptProposedAction();
+                return;
+            }
+        }
+    }
+    event->ignore();
+}
+
+void MainWindow::dropEvent(QDropEvent* event) {
+    QList<QUrl> urls = event->mimeData()->urls();
+    int nPkg = urls.size();
+    int pkgNum = 0;
+    for (const QUrl& url : urls) {
+        QString filePath = url.toLocalFile();
+        if (filePath.endsWith(".pkg", Qt::CaseInsensitive)) {
+            ++pkgNum;
+            std::filesystem::path path = Common::FS::PathFromQString(filePath);
+            MainWindow::InstallDragDropPkg(path, pkgNum, nPkg);
+        }
+    }
+    event->acceptProposedAction();
 }
 
 MainWindow::~MainWindow() {
