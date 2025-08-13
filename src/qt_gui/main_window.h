@@ -111,15 +111,13 @@ private:
 
 protected:
     bool eventFilter(QObject* obj, QEvent* event) override;
-
-    void dragEnterEvent(QDragEnterEvent* event1) override {
-        if (event1->mimeData()->hasUrls()) {
-            event1->acceptProposedAction();
+    void dragEnterEvent(QDragEnterEvent* event) override {
+        if (event->mimeData()->hasUrls()) {
+            event->acceptProposedAction();
         }
     }
-
-    void dropEvent(QDropEvent* event1) override {
-        const QMimeData* mimeData = event1->mimeData();
+    void dropEvent(QDropEvent* event) override {
+        const QMimeData* mimeData = event->mimeData();
         if (mimeData->hasUrls()) {
             QList<QUrl> urlList = mimeData->urls();
             int pkgNum = 0;
@@ -131,8 +129,9 @@ protected:
             }
         }
     }
-
-    void resizeEvent(QResizeEvent* event) override;
+    void resizeEvent(QResizeEvent* event) override {
+        QMainWindow::resizeEvent(event);
+    }
 
     std::filesystem::path last_install_dir = "";
     bool delete_file_on_install = false;
