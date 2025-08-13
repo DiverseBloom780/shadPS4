@@ -8,6 +8,7 @@
 #include <QPlainTextEdit>
 #include <QProgressDialog>
 #include <QStatusBar>
+#include <QMimeData>
 
 #include "about_dialog.h"
 #include "cheats_patches.h"
@@ -23,6 +24,7 @@
 #include "hotkeys.h"
 #include "kbm_gui.h"
 #include "settings_dialog.h"
+#include "gui_context_menus.h" // for InstallDragDropPkg
 
 #ifdef ENABLE_DISCORD_RPC
 #include "common/discord_rpc_handler.h"
@@ -32,10 +34,106 @@ class MainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget* parent = nullptr);
-    ~MainWindow();
-
     // ...
+
+protected:
+    void dragEnterEvent(QDragEnterEvent* event) override;
+    void dropEvent(QDropEvent* event) override;
+
+private:
+    void InstallDragDropPkg(const std::filesystem::path& path, int pkgNum, int nPkg);
+};
+
+// ...
+
+void MainWindow::dragEnterEvent(QDragEnterEvent* event) {
+    if (event->mimeData()->hasUrls()) {
+        QList<QUrl> urls = event->mimeData()->urls();
+        for (const QUrl& url : urls) {
+            QString filePath = url.toLocalFile();
+            if (filePath.endsWith(".pkg", Qt::CaseInsensitive)) {
+                event->acceptProposedAction();
+                return;
+            }
+        }
+    }
+    event->ignore();
+}
+
+void MainWindow::dragEnterEvent(QDragEnterEvent* event) {
+    if (event->mimeData()->hasUrls()) {
+        for (const QUrl& url : event->mimeData()->urls()) {
+            QString filePath = url.toLocalFile();
+            if (filePath.endsWith(".pkg", Qt::CaseInsensitive)) {
+                event->acceptProposedAction();
+                return;
+            }
+        }
+    }
+    event->ignore();
+}
+
+void MainWindow::dragEnterEvent(QDragEnterEvent* event) {
+    if (event->mimeData()->hasUrls()) {
+        for (const QUrl& url : event->mimeData()->urls()) {
+            QString filePath = url.toLocalFile();
+            if (filePath.endsWith(".pkg", Qt::CaseInsensitive)) {
+                event->acceptProposedAction();
+                return;
+            }
+        }
+    }
+    event->ignore();
+}
+
+void MainWindow::dropEvent(QDropEvent* event) {
+    QList<QUrl> urls = event->mimeData()->urls();
+
+    // Count only PKG files
+    int nPkg = 0;
+    for (const QUrl& url : urls) {
+        if (url.toLocalFile().endsWith(".pkg", Qt::CaseInsensitive)) {
+            ++nPkg;
+        }
+    }
+
+    int pkgNum = 0;
+    for (const QUrl& url : urls) {
+        QString filePath = url.toLocalFile();
+        if (filePath.endsWith(".pkg", Qt::CaseInsensitive)) {
+            ++pkgNum;
+            std::filesystem::path path = Common::FS::PathFromQString(filePath);
+            InstallDragDropPkg(path, pkgNum, nPkg);
+        }
+    }
+
+    event->acceptProposedAction();
+}
+
+void MainWindow::InstallDragDropPkg(const std::filesystem::path& path, int pkgNum, int nPkg) {
+    try {
+        Emu::InstallPkg(path.string());
+
+        QMessageBox::information(
+            this,
+            tr("PKG Installation"),
+            tr("PKG file installed successfully: ") +
+                QString::fromStdString(path.filename().string())
+        );
+
+        RefreshGameTable();
+    }
+    catch (const std::exception& e) {
+        QMessageBox::critical(
+            this,
+            tr("PKG Installation Failed"),
+            tr("Error installing PKG: ") + e.what()
+        );
+    }
+}
+
+
+// ...
 
 protected:
     void dragEnterEvent(QDragEnterEvent* event) override;
